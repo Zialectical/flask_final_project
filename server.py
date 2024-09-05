@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-from emotion_detection import emotion_detector  # Import your emotion_detector function
+from emotion_detection import emotion_detector
 
 app = Flask(__name__)
 
@@ -10,10 +10,13 @@ def index():
 @app.route("/emotionDetector", methods=["POST"])
 def emotion_analyzer():
     text = request.form['textToAnalyze']
-    emotions = emotion_detector(text)['emotion']['document']['emotion']
+    response = emotion_detector(text)
     
-    # Pass emotions directly to the template without calculating the dominant emotion
-    return render_template('result.html', emotions=emotions)
+    if response and 'dominant_emotion' in response:
+        print(f"Passing emotions to template: {response}")  # Debugging print
+        return render_template('result.html', emotions=response)
+    else:
+        return f"Error: Could not retrieve emotions. Full response: {response}"
 
 if __name__ == "__main__":
     app.run(debug=True)
