@@ -5,29 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Emotion Analysis Result</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <style>
-        .container {
-            margin-top: 50px;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .result-container {
-            text-align: center;
-        }
-        .emotion-list {
-            list-style-type: none;
-            padding: 0;
-        }
-        .emotion-list li {
-            background-color: #f1f1f1;
-            margin: 5px 0;
-            padding: 10px;
-            border-radius: 5px;
-        }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
@@ -35,18 +12,27 @@
 
         <!-- Display colored text for emotions -->
         <h2>Emotion Scores with Colored Text</h2>
-        <p style="color: {{ 'red' if emotions['anger'] > 0.5 else 'black' }}">Anger: {{ emotions['anger'] }}</p>
-        <p style="color: {{ 'blue' if emotions['sadness'] > 0.5 else 'black' }}">Sadness: {{ emotions['sadness'] }}</p>
-        <p style="color: {{ 'green' if emotions['joy'] > 0.5 else 'black' }}">Joy: {{ emotions['joy'] }}</p>
-        <p style="color: {{ 'purple' if emotions['fear'] > 0.5 else 'black' }}">Fear: {{ emotions['fear'] }}</p>
-        <p style="color: {{ 'brown' if emotions['disgust'] > 0.5 else 'black' }}">Disgust: {{ emotions['disgust'] }}</p>
+        <p style="color: {{ 'red' if emotions['anger'] != 'N/A' and emotions['anger'] > 0.5 else 'black' }}">Anger: {{ emotions['anger'] }}</p>
+        <p style="color: {{ 'blue' if emotions['sadness'] != 'N/A' and emotions['sadness'] > 0.5 else 'black' }}">Sadness: {{ emotions['sadness'] }}</p>
+        <p style="color: {{ 'green' if emotions['joy'] != 'N/A' and emotions['joy'] > 0.5 else 'black' }}">Joy: {{ emotions['joy'] }}</p>
+        <p style="color: {{ 'purple' if emotions['fear'] != 'N/A' and emotions['fear'] > 0.5 else 'black' }}">Fear: {{ emotions['fear'] }}</p>
+        <p style="color: {{ 'brown' if emotions['disgust'] != 'N/A' and emotions['disgust'] > 0.5 else 'black' }}">Disgust: {{ emotions['disgust'] }}</p>
 
-        <!-- Debugging section to show raw emotion data -->
+        <!-- Show a full error message for invalid text input -->
+        <p style="color: red; font-weight: bold;">
+            {{ emotions['dominant_emotion'] if emotions['dominant_emotion'] != 'N/A' else "Invalid text! Please try again." }}
+        </p>
+
+        <!-- Display raw emotion data for debugging -->
         <pre>{{ emotions }}</pre>
 
-        <!-- Add Chart.js canvas -->
+        <!-- Conditionally render the Chart.js canvas only when valid data exists -->
+        {% if emotions['anger'] != 'N/A' %}
         <h2>Emotion Analysis Bar Chart</h2>
         <canvas id="emotionChart" width="500" height="250"></canvas>
+        {% else %}
+        <h2>No data to display</h2>
+        {% endif %}
 
         <!-- Link to go back -->
         <div class="text-center mt-3">
@@ -55,46 +41,49 @@
     </div>
 
     <script>
-        // Get emotion data from Flask and convert to a format suitable for Chart.js
+        // Check if emotionData is valid before passing to Chart.js
         const emotionData = {{ emotions | tojson }};
-        console.log('Emotion data:', emotionData);  // Debugging in the browser
-        const ctx = document.getElementById('emotionChart').getContext('2d');
-        const chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Anger', 'Disgust', 'Fear', 'Joy', 'Sadness'],
-                datasets: [{
-                    label: 'Emotion Scores',
-                    data: [
-                        emotionData.anger,
-                        emotionData.disgust,
-                        emotionData.fear,
-                        emotionData.joy,
-                        emotionData.sadness
-                    ],
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(255, 206, 86, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(255, 206, 86, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: { beginAtZero: true }
+        if (emotionData.anger !== 'N/A') { // Only render chart if data exists
+            const ctx = document.getElementById('emotionChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Anger', 'Disgust', 'Fear', 'Joy', 'Sadness'],
+                    datasets: [{
+                        label: 'Emotion Scores',
+                        data: [
+                            emotionData.anger,
+                            emotionData.disgust,
+                            emotionData.fear,
+                            emotionData.joy,
+                            emotionData.sadness
+                        ],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(255, 206, 86, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 206, 86, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
                 }
-            }
-        });
+            });
+        }
     </script>
 </body>
 </html>

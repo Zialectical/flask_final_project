@@ -28,11 +28,19 @@ def emotion_analyzer():
     text = request.form['textToAnalyze']
     response = emotion_detector(text)
 
-    if response and 'dominant_emotion' in response:
-        print(f"Passing emotions to template: {response}")
+    if response and response['dominant_emotion'] is not None:
+        # Pass the emotions to the template
         return render_template('result.html', emotions=response)
-
-    return "Error: Could not retrieve emotions. Full response: {response}"
+    else:
+        # Handle blank input or API error
+        return render_template('result.html', emotions={
+            'anger': 'N/A', 
+            'disgust': 'N/A', 
+            'fear': 'N/A', 
+            'joy': 'N/A', 
+            'sadness': 'N/A', 
+            'dominant_emotion': 'Invalid text! Please try again.'
+        })
 
 if __name__ == "__main__":
     app.run(debug=True)
